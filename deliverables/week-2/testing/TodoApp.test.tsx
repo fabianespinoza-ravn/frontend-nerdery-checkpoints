@@ -116,10 +116,76 @@ describe('TodoApp', () => {
     expect(input).toHaveValue('   ')
   })
 
-  it.todo('toggles a todo completed via its checkbox')
-  it.todo('deletes a todo via its Delete button')
+  it('toggles a todo completed via its checkbox', async () => {
+    const user = userEvent.setup()
+    render(<TodoApp />)
+
+    const input = screen.getByRole('textbox', {
+      name: /new todo/i,
+    })
+
+    await user.type(input, 'Test')
+    await user.click(
+      screen.getByRole('button', {
+        name: /^add$/i,
+      }),
+    )
+
+    const checkbox = screen.getByRole('checkbox', {
+      name: /^test$/i,
+    })
+
+    expect(checkbox).not.toBeChecked()
+    expect(screen.getByText(/^1 left$/i)).toBeVisible()
+
+    await user.click(checkbox)
+
+    expect(checkbox).toBeChecked()
+    expect(screen.getByText(/^0 left$/i)).toBeVisible()
+
+    await user.click(checkbox)
+
+    expect(checkbox).not.toBeChecked()
+    expect(screen.getByText(/^1 left$/i)).toBeVisible()
+  })
+
+  it('deletes a todo via its Delete button', async () => {
+    const user = userEvent.setup()
+    render(<TodoApp />)
+
+    const input = screen.getByRole('textbox', {
+      name: /new todo/i,
+    })
+
+    const todoList = screen.getByRole('list')
+
+    await user.type(input, 'Test')
+    await user.click(
+      screen.getByRole('button', {
+        name: /^add$/i,
+      }),
+    )
+
+    const todoItem = within(todoList).getByRole('listitem')
+    const deleteButton = within(todoItem).getByRole('button', {
+      name: /delete test/i,
+    })
+
+    expect(
+      within(todoItem).getByRole('checkbox', {
+        name: /^test$/i,
+      }),
+    ).not.toBeChecked()
+
+    expect(screen.getByText(/^1 left$/i)).toBeVisible()
+
+    await user.click(deleteButton)
+
+    expect(within(todoList).queryByRole('listitem')).not.toBeInTheDocument()
+    expect(screen.getByText(/^0 left$/i)).toBeVisible()
+  })
+
   it.todo('Active filter shows only not-completed todos')
   it.todo('Completed filter shows only completed todos')
   it.todo('All filter shows every todo again')
-  it.todo('shows the count of active todos as "{n} left"')
 })
