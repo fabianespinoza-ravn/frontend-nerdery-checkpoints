@@ -185,7 +185,128 @@ describe('TodoApp', () => {
     expect(screen.getByText(/^0 left$/i)).toBeVisible()
   })
 
-  it.todo('Active filter shows only not-completed todos')
-  it.todo('Completed filter shows only completed todos')
-  it.todo('All filter shows every todo again')
+  it('Active filter shows only not-completed todos', async () => {
+    const user = userEvent.setup()
+    render(<TodoApp />)
+
+    const input = screen.getByRole('textbox', {
+      name: /new todo/i,
+    })
+    const addButton = screen.getByRole('button', {
+      name: /^add$/i,
+    })
+
+    await user.type(input, 'Test on')
+    await user.click(addButton)
+    await user.type(input, 'Test off')
+    await user.click(addButton)
+
+    await user.click(
+      screen.getByRole('checkbox', {
+        name: /^test off$/i,
+      }),
+    )
+
+    const filterGroup = screen.getByRole('group', {
+      name: /filter todos/i,
+    })
+    const allButton = within(filterGroup).getByRole('button', {
+      name: /^all$/i,
+    })
+    const activeButton = within(filterGroup).getByRole('button', {
+      name: /^active$/i,
+    })
+
+    await user.click(activeButton)
+    expect(activeButton).toHaveAttribute('aria-pressed', 'true')
+    expect(allButton).toHaveAttribute('aria-pressed', 'false')
+
+    expect(
+      screen.getByRole('checkbox', {
+        name: /^test on$/i,
+      }),
+    ).toBeVisible()
+    expect(
+      screen.queryByRole('checkbox', {
+        name: /^test off$/i,
+      }),
+    ).not.toBeInTheDocument()
+
+    await user.click(allButton)
+    expect(allButton).toHaveAttribute('aria-pressed', 'true')
+    expect(activeButton).toHaveAttribute('aria-pressed', 'false')
+
+    expect(
+      screen.getByRole('checkbox', {
+        name: /^test on$/i,
+      }),
+    ).toBeVisible()
+    expect(
+      screen.getByRole('checkbox', {
+        name: /^test off$/i,
+      }),
+    ).toBeVisible()
+  })
+
+  it('Completed filter shows only completed todos', async () => {
+    const user = userEvent.setup()
+    render(<TodoApp />)
+
+    const input = screen.getByRole('textbox', {
+      name: /new todo/i,
+    })
+    const addButton = screen.getByRole('button', {
+      name: /^add$/i,
+    })
+
+    await user.type(input, 'Test on')
+    await user.click(addButton)
+    await user.type(input, 'Test off')
+    await user.click(addButton)
+    await user.click(
+      screen.getByRole('checkbox', {
+        name: /^test off$/i,
+      }),
+    )
+
+    const filterGroup = screen.getByRole('group', {
+      name: /filter todos/i,
+    })
+    const allButton = within(filterGroup).getByRole('button', {
+      name: /^all$/i,
+    })
+    const completedButton = within(filterGroup).getByRole('button', {
+      name: /^completed$/i,
+    })
+
+    await user.click(completedButton)
+    expect(completedButton).toHaveAttribute('aria-pressed', 'true')
+    expect(allButton).toHaveAttribute('aria-pressed', 'false')
+
+    expect(
+      screen.getByRole('checkbox', {
+        name: /^test off$/i,
+      }),
+    ).toBeVisible()
+    expect(
+      screen.queryByRole('checkbox', {
+        name: /^test on$/i,
+      }),
+    ).not.toBeInTheDocument()
+
+    await user.click(allButton)
+    expect(allButton).toHaveAttribute('aria-pressed', 'true')
+    expect(completedButton).toHaveAttribute('aria-pressed', 'false')
+
+    expect(
+      screen.getByRole('checkbox', {
+        name: /^test on$/i,
+      }),
+    ).toBeVisible()
+    expect(
+      screen.getByRole('checkbox', {
+        name: /^test off$/i,
+      }),
+    ).toBeVisible()
+  })
 })
