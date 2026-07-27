@@ -1,9 +1,21 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import Demo from './src/index'
 import { TodoApp } from './src/TodoApp'
 
 describe('TodoApp', () => {
+  it('renders the demo heading', () => {
+    render(<Demo />)
+
+    const heading = screen.getByRole('heading', {
+      level: 1,
+      name: /testing module — todo app/i,
+    })
+
+    expect(heading).toBeVisible()
+  })
+  
   it('renders the initial state of the Todo app', () => {
     render(<TodoApp />)
     const heading = screen.getByRole('heading', {
