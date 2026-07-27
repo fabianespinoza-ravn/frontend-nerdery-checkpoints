@@ -53,13 +53,69 @@ describe('TodoApp', () => {
     expect(within(todoList).queryAllByRole('listitem')).toHaveLength(0)
   })
 
-  // Replace each placeholder below with a real test.
-  // Tip: `const user = userEvent.setup()` then `await user.type(...)` /
-  // `await user.click(...)`. Query by role/label, assert on what the user sees.
+  it('adds a non-empty todo to the list', async () => {
+    const user = userEvent.setup()
+    render(<TodoApp />)
 
-  it.todo('adds a non-empty todo to the list')
-  it.todo('ignores empty / whitespace-only input')
-  it.todo('clears the input after adding')
+    const newTodoInput = screen.getByRole('textbox', {
+      name: /new todo/i,
+    })
+    const addButton = screen.getByRole('button', {
+      name: /^add$/i,
+    })
+
+    const todoList = screen.getByRole('list')
+    expect(within(todoList).queryAllByRole('listitem')).toHaveLength(0)
+    expect(screen.getByText(/^0 left$/i)).toBeVisible()
+
+    await user.type(newTodoInput, 'Test')
+    await user.click(addButton)
+
+    const todoCheckbox = within(todoList).getByRole('checkbox', {
+      name: /test/i,
+    })
+    expect(todoCheckbox).toBeVisible()
+    expect(todoCheckbox).toBeEnabled()
+    expect(todoCheckbox).not.toBeChecked()
+
+    expect(within(todoList).getAllByRole('listitem')).toHaveLength(1)
+  
+    expect(
+      within(todoList).getByRole('button', {
+        name: /delete test/i,
+      }),
+    ).toBeEnabled()
+
+    expect(screen.getByText(/^1 left$/i)).toBeVisible()
+    expect(newTodoInput).toHaveValue('')
+  })
+
+  it('ignores empty and whitespace-only input', async () => {
+    const user = userEvent.setup()
+    render(<TodoApp />)
+
+    const input = screen.getByRole('textbox', {
+      name: /new todo/i,
+    })
+    const addButton = screen.getByRole('button', {
+      name: /^add$/i,
+    })
+
+    const todoList = screen.getByRole('list')
+    const expectNoTodos = () => {
+      expect(within(todoList).queryByRole('listitem')).not.toBeInTheDocument()
+      expect(screen.getByText(/^0 left$/i)).toBeVisible()
+    }
+    expectNoTodos()
+    expect(input).toHaveValue('')
+
+    await user.type(input, '   ')
+    await user.click(addButton)
+
+    expectNoTodos()
+    expect(input).toHaveValue('   ')
+  })
+
   it.todo('toggles a todo completed via its checkbox')
   it.todo('deletes a todo via its Delete button')
   it.todo('Active filter shows only not-completed todos')
