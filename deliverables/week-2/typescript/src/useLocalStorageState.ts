@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 export function useLocalStorageState<T>(
   _key: string,
@@ -15,17 +15,24 @@ export function useLocalStorageState<T>(
     }
     return val
   })
-  const setValue = (_value: T | ((prev: T) => T)): void => {
+
+  type SetStateAction<T> = T | ((prev: T) => T)
+  type SetValue<T> = (value: SetStateAction<T>) => void
+
+  const setValue = useCallback<SetValue<T>>((next) => {
     _setValue(prev => {
       const nextValue =
-        typeof _value === 'function'
-          ? (_value as (prev: T) => T)(prev)
-          : _value
+        typeof next === 'function'
+          ? (next as (prev: T) => T)(prev)
+          : next
 
       localStorage.setItem(_key, JSON.stringify(nextValue))
 
       return nextValue
     })
-  }
-  return [value, setValue]
+  }, [_key])
+  return useMemo(
+    () => [value, setValue] as [T, SetValue<T>],
+    [value, setValue],
+  )
 }
